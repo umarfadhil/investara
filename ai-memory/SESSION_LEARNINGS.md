@@ -82,3 +82,6 @@
   - Added Vercel placeholders to `.env.example` with the Investara project ID and empty secret fields.
   - Added `.vercel/` to `.gitignore` so local project linkage and tokens stay out of source control.
   - Converted `apps/web` from an accidental nested Git repo/gitlink into root-tracked app files; the old nested `.git` metadata was backed up under ignored `logs/`.
+- Follow-up Vercel failed deploy fix:
+  - Vercel failed with "No Next.js version detected" because the project root package did not declare `next`; the real dependency was only in `apps/web/package.json`.
+  - Added pinned root dev dependencies for `next`, `react`, and `react-dom` matching `apps/web` so Vercel can detect Next.js while still building with `npm run web:build`.

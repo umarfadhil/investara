@@ -24,6 +24,7 @@
 ## Deployment Standards
 - Vercel deploys the monorepo from the repository root.
 - Keep root `vercel.json` aligned with the web workspace: `npm install`, `npm run web:build`, and `apps/web/.next`.
+- Keep root `next`, `react`, and `react-dom` dev dependencies pinned to the same versions as `apps/web` so Vercel can detect the Next.js version from the root package.
 - Do not commit `.vercel/` or Vercel token values. Use local `.env` files or CI secrets for `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
 - Keep deployable app directories tracked by the root repository; do not leave `apps/web` as a nested Git repository or unresolved gitlink.
 

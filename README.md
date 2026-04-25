@@ -85,6 +85,10 @@ The repo is deployed from the monorepo root. The root `vercel.json` pins:
 - Build command: `npm run web:build`
 - Output directory: `apps/web/.next`
 
+The root `package.json` also pins `next`, `react`, and `react-dom` as dev dependencies
+so Vercel can detect the Next.js version from the configured root directory. The actual
+application code and runtime dependencies remain in `apps/web`.
+
 For CLI/CI deployments, keep `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`
 in local `.env` files or CI secrets only. Do not commit token values.
 
