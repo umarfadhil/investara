@@ -89,6 +89,10 @@ The root `package.json` also pins `next`, `react`, and `react-dom` as dev depend
 so Vercel can detect the Next.js version from the configured root directory. The actual
 application code and runtime dependencies remain in `apps/web`.
 
+The root package also keeps `lightningcss-linux-x64-gnu` as an optional dependency.
+This is required for Vercel's Linux build workers when Turbopack evaluates CSS such as
+Leaflet styles from the web workspace.
+
 For CLI/CI deployments, keep `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`
 in local `.env` files or CI secrets only. Do not commit token values.
 

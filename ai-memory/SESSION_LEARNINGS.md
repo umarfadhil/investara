@@ -85,3 +85,6 @@
 - Follow-up Vercel failed deploy fix:
   - Vercel failed with "No Next.js version detected" because the project root package did not declare `next`; the real dependency was only in `apps/web/package.json`.
   - Added pinned root dev dependencies for `next`, `react`, and `react-dom` matching `apps/web` so Vercel can detect Next.js while still building with `npm run web:build`.
+- Follow-up Vercel Linux build fix:
+  - Vercel failed during Turbopack CSS evaluation with missing `lightningcss.linux-x64-gnu.node` because the Windows-maintained root lockfile only carried the Windows Lightning CSS native optional package.
+  - Added `lightningcss-linux-x64-gnu@1.32.0` as a root optional dependency so Linux Vercel workers install the native Lightning CSS package needed by CSS imports such as Leaflet.
