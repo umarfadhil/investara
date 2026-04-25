@@ -1,0 +1,22 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: investara-postgres
+    environment:
+      POSTGRES_DB: investara
+      POSTGRES_USER: investara
+      POSTGRES_PASSWORD: investara
+    ports:
+      - "5432:5432"
+    volumes:
+      - investara-postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U investara -d investara"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  investara-postgres-data:
+
