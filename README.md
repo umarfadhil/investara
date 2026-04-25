@@ -81,7 +81,7 @@ The Investara Vercel project is `prj_JCvCSeCUxDiobczAjj5i8PGumXJU`.
 The repo is deployed from the monorepo root. The root `vercel.json` pins:
 
 - Framework: Next.js
-- Install command: `npm install`
+- Install command: `npm install --include=optional`
 - Build command: `npm run web:build`
 - Output directory: `apps/web/.next`
 
@@ -89,9 +89,9 @@ The root `package.json` also pins `next`, `react`, and `react-dom` as dev depend
 so Vercel can detect the Next.js version from the configured root directory. The actual
 application code and runtime dependencies remain in `apps/web`.
 
-The root package also keeps `lightningcss-linux-x64-gnu` as an optional dependency.
-This is required for Vercel's Linux build workers when Turbopack evaluates CSS such as
-Leaflet styles from the web workspace.
+The root package also keeps Linux native optional dependencies for Tailwind Oxide and
+Lightning CSS. These are required for Vercel's Linux build workers when Turbopack
+evaluates CSS such as Leaflet styles from the web workspace.
 
 For CLI/CI deployments, keep `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`
 in local `.env` files or CI secrets only. Do not commit token values.

@@ -88,3 +88,7 @@
 - Follow-up Vercel Linux build fix:
   - Vercel failed during Turbopack CSS evaluation with missing `lightningcss.linux-x64-gnu.node` because the Windows-maintained root lockfile only carried the Windows Lightning CSS native optional package.
   - Added `lightningcss-linux-x64-gnu@1.32.0` as a root optional dependency so Linux Vercel workers install the native Lightning CSS package needed by CSS imports such as Leaflet.
+- Follow-up Vercel Tailwind Oxide build fix:
+  - Local Windows builds passed because `@tailwindcss/oxide-win32-x64-msvc` was installed locally, but Vercel's Linux build needed `@tailwindcss/oxide-linux-x64-gnu`.
+  - Root workspace installs use the root `package-lock.json`; `apps/web/package-lock.json` containing Linux optional packages is not enough for Vercel's root install.
+  - Added `@tailwindcss/oxide-linux-x64-gnu@4.2.4` as a root optional dependency and made the Vercel install command explicit with `npm install --include=optional`.

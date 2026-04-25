@@ -23,9 +23,9 @@
 
 ## Deployment Standards
 - Vercel deploys the monorepo from the repository root.
-- Keep root `vercel.json` aligned with the web workspace: `npm install`, `npm run web:build`, and `apps/web/.next`.
+- Keep root `vercel.json` aligned with the web workspace: `npm install --include=optional`, `npm run web:build`, and `apps/web/.next`.
 - Keep root `next`, `react`, and `react-dom` dev dependencies pinned to the same versions as `apps/web` so Vercel can detect the Next.js version from the root package.
-- Keep `lightningcss-linux-x64-gnu` as a root optional dependency so Vercel's Linux build can load Lightning CSS during Turbopack/Leaflet CSS processing.
+- Keep `@tailwindcss/oxide-linux-x64-gnu` and `lightningcss-linux-x64-gnu` as root optional dependencies so Vercel's Linux build can load native CSS processors during Turbopack/Leaflet CSS processing.
 - Do not commit `.vercel/` or Vercel token values. Use local `.env` files or CI secrets for `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`.
 - Keep deployable app directories tracked by the root repository; do not leave `apps/web` as a nested Git repository or unresolved gitlink.
 

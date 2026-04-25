@@ -112,9 +112,9 @@ investara/
 
 ## Integration Direction
 - Vercel production deployment targets project `prj_JCvCSeCUxDiobczAjj5i8PGumXJU`.
-- Vercel should deploy from the repository root using `vercel.json`, which builds the web workspace with `npm run web:build` and publishes `apps/web/.next`.
+- Vercel should deploy from the repository root using `vercel.json`, which installs with optional dependencies, builds the web workspace with `npm run web:build`, and publishes `apps/web/.next`.
 - The root `package.json` intentionally includes pinned `next`, `react`, and `react-dom` dev dependencies for Vercel framework/version detection; `apps/web/package.json` remains the actual web app manifest.
-- The root `package.json` also includes `lightningcss-linux-x64-gnu` as an optional dependency because the root lockfile is maintained on Windows but Vercel builds on Linux.
+- The root `package.json` also includes `@tailwindcss/oxide-linux-x64-gnu` and `lightningcss-linux-x64-gnu` as optional dependencies because the root lockfile is maintained on Windows but Vercel builds on Linux.
 - `apps/web` must be tracked by the root Git repository as normal files, not as a nested Git repo or unresolved gitlink/submodule.
 - Frontend calls FastAPI directly in local MVP using `NEXT_PUBLIC_API_BASE_URL`.
 - Backend reads `DATA_BACKEND`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET`, and `OPENAI_API_KEY`.
