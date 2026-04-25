@@ -9,6 +9,7 @@
 - Next.js uses shadcn/ui with dark-mode dashboard defaults and a pinned Turbopack root.
 - FastAPI exposes typed MVP endpoints under `/api/v1` with mock project, partner, action, recommendation, translation, and decision-brief services.
 - Next local dev uses `next dev --webpack` because Turbopack dev spawned excessive PostCSS worker processes in this workspace. Production build remains verified.
+- Vercel project `prj_JCvCSeCUxDiobczAjj5i8PGumXJU` should deploy from the monorepo root using the root `vercel.json`.
 
 ## Trade-offs
 - Collaborative filtering is mocked initially because there is no historical investor behavior dataset yet.
@@ -30,6 +31,7 @@
 - Re-check Next/PostCSS audit status when Next publishes a patched dependency chain.
 - Apply `infra/supabase/001_init.sql` to the hosted Supabase project before running the API with `DATA_BACKEND=supabase`.
 - Direct remote schema application still needs a Supabase database password or Supabase access token; project API keys only cover REST data access after tables exist.
+- Vercel CLI/CI needs a Vercel access token plus `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`; do not store token values in tracked files.
 
 ## Current Session
 - Created the required `/ai-memory` folder and initial project memory files.
@@ -75,3 +77,8 @@
   - Replaced the root `npm run dev` alias with `scripts/dev-web.mjs`.
   - The wrapper detects an existing Next dev lock and localhost server on ports 3000-3005, then prints the active URL instead of starting a duplicate server.
   - `npm run web:dev` remains the direct raw Next command for cases where the wrapper is not wanted.
+- Follow-up Vercel repo integration:
+  - Added root `vercel.json` for Vercel monorepo deployment: `npm install`, `npm run web:build`, output `apps/web/.next`, framework `nextjs`.
+  - Added Vercel placeholders to `.env.example` with the Investara project ID and empty secret fields.
+  - Added `.vercel/` to `.gitignore` so local project linkage and tokens stay out of source control.
+  - Converted `apps/web` from an accidental nested Git repo/gitlink into root-tracked app files; the old nested `.git` metadata was backed up under ignored `logs/`.

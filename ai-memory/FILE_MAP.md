@@ -60,6 +60,7 @@ investara/
     supabase/
       001_init.sql
   docker-compose.yml
+  vercel.json
   package.json
   README.md
 ```
@@ -110,6 +111,9 @@ investara/
 - `actions`: investor workflow events and statuses.
 
 ## Integration Direction
+- Vercel production deployment targets project `prj_JCvCSeCUxDiobczAjj5i8PGumXJU`.
+- Vercel should deploy from the repository root using `vercel.json`, which builds the web workspace with `npm run web:build` and publishes `apps/web/.next`.
+- `apps/web` must be tracked by the root Git repository as normal files, not as a nested Git repo or unresolved gitlink/submodule.
 - Frontend calls FastAPI directly in local MVP using `NEXT_PUBLIC_API_BASE_URL`.
 - Backend reads `DATA_BACKEND`, `SUPABASE_URL`, `SUPABASE_SECRET_KEY`, `JWT_SECRET`, and `OPENAI_API_KEY`.
 - `DATA_BACKEND=mock` uses in-memory MVP fixtures; `DATA_BACKEND=supabase` uses `app/repositories/supabase.py` through `app/repositories/data_store.py`.

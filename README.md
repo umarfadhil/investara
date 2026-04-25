@@ -75,5 +75,18 @@ npm run api:lint
 npm run api:test
 ```
 
+## Vercel Deployment
+The Investara Vercel project is `prj_JCvCSeCUxDiobczAjj5i8PGumXJU`.
+
+The repo is deployed from the monorepo root. The root `vercel.json` pins:
+
+- Framework: Next.js
+- Install command: `npm install`
+- Build command: `npm run web:build`
+- Output directory: `apps/web/.next`
+
+For CLI/CI deployments, keep `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID`
+in local `.env` files or CI secrets only. Do not commit token values.
+
 ## Memory Rule
 Before changing project behavior or structure, read `/ai-memory`. After meaningful changes, update `/ai-memory`.
