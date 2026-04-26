@@ -48,8 +48,9 @@ export default function RootLayout({
         <Script
           id="investara-theme"
           strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{ __html: themeScript }}
-        />
+        >
+          {themeScript}
+        </Script>
         <TooltipProvider>
           <LanguageProvider>{children}</LanguageProvider>
         </TooltipProvider>

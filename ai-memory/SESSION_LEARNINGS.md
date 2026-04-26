@@ -196,3 +196,11 @@
     - `npm run web:lint` passed.
     - `npm run web:build` passed.
     - Playwright browser check passed for one no-direct-BPS project and one direct-BPS-citation project at 1440x900 and 390x844, with no console errors, no Next overlay, no horizontal overflow, visible BPS reference panels, and no old cross-check wording.
+- Vercel Next 16.2 theme script type-check fix:
+  - Vercel failed on `apps/web/src/app/layout.tsx` because `next/script` rejected the inline theme initializer when passed via `dangerouslySetInnerHTML`.
+  - Changed the `beforeInteractive` `Script` usage to pass `themeScript` as children, which matches the installed Next 16.2 `ScriptProps` type surface and preserves the pre-hydration dark-mode initializer.
+  - Local Windows build was initially blocked by a stale OneDrive reparse-point artifact in `apps/web/.next/static`; stopping the local dev server and deleting the generated `.next` cache cleared the environment-only blocker.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm --workspace apps/web exec tsc -- --noEmit` passed.
+    - `npm run web:build` passed.
