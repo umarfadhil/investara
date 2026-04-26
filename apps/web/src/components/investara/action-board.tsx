@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { CheckCircle2, Clock3, Handshake, Landmark, ListPlus } from "lucide-react";
 
+import { useLanguage } from "@/components/investara/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocalStorageState } from "@/lib/use-local-storage-state";
 import type { InvestorAction } from "@/types/investara";
 
 const actionIcons = {
@@ -19,8 +20,19 @@ type ActionBoardProps = {
   initialActions: InvestorAction[];
 };
 
+const actionStorageKey = "investara-actions";
+
+function parseActions(value: unknown, fallback: InvestorAction[]) {
+  return Array.isArray(value) ? (value as InvestorAction[]) : fallback;
+}
+
 export function ActionBoard({ initialActions }: ActionBoardProps) {
-  const [actions, setActions] = useState(initialActions);
+  const { t } = useLanguage();
+  const [actions, setActions] = useLocalStorageState(
+    actionStorageKey,
+    initialActions,
+    parseActions,
+  );
 
   function advanceAction(actionId: string) {
     setActions((current) =>
@@ -31,7 +43,10 @@ export function ActionBoard({ initialActions }: ActionBoardProps) {
 
         return {
           ...action,
-          status: action.status === "open" ? "in_progress" : "completed",
+          status:
+            action.status === "open" || action.status === "scheduled"
+              ? "in_progress"
+              : "completed",
         };
       }),
     );
@@ -42,7 +57,7 @@ export function ActionBoard({ initialActions }: ActionBoardProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <ListPlus className="h-4 w-4 text-primary" />
-          Investor action flow
+          {t("action.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
@@ -59,7 +74,7 @@ export function ActionBoard({ initialActions }: ActionBoardProps) {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="capitalize">
-                  {action.status.replace("_", " ")}
+                  {t(`action.status.${action.status}`)}
                 </Badge>
                 <Button
                   size="sm"
@@ -67,7 +82,7 @@ export function ActionBoard({ initialActions }: ActionBoardProps) {
                   disabled={action.status === "completed"}
                   onClick={() => advanceAction(action.id)}
                 >
-                  Update
+                  {t("action.update")}
                 </Button>
               </div>
             </div>
@@ -77,4 +92,3 @@ export function ActionBoard({ initialActions }: ActionBoardProps) {
     </Card>
   );
 }
-

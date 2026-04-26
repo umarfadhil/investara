@@ -6,7 +6,30 @@ from pydantic import BaseModel, Field
 
 LanguageCode = Literal["en", "zh", "ja", "ko"]
 RiskAppetite = Literal["low", "medium", "high"]
-ActionType = Literal["shortlist", "request_intro", "contact_bkpm"]
+InvestorType = Literal[
+    "strategic_corporate",
+    "private_equity",
+    "family_office",
+    "development_finance",
+    "government_agency",
+]
+EntryMode = Literal[
+    "joint_venture",
+    "minority_stake",
+    "greenfield",
+    "project_finance",
+    "acquisition",
+]
+InvestmentTimeline = Literal["0_6_months", "6_12_months", "12_24_months"]
+StrategicPriority = Literal[
+    "domestic_market",
+    "export_platform",
+    "downstream_resources",
+    "green_transition",
+    "infrastructure_corridor",
+    "partner_ready",
+]
+ActionType = Literal["shortlist", "request_intro", "contact_bkpm", "diligence"]
 
 
 class Region(BaseModel):
@@ -20,6 +43,46 @@ class Region(BaseModel):
     growth_rate: float
     minimum_wage_usd: float
     sectors: list[str]
+
+
+class ProjectSourceIncentive(BaseModel):
+    name: str
+    description: str = ""
+
+
+class ProjectSourceContact(BaseModel):
+    name: str = ""
+    address: str = ""
+    phone: str = ""
+    email: str = ""
+    website: str = ""
+
+
+class ProjectSource(BaseModel):
+    provider: str
+    source_id: str
+    opportunity_type: str
+    project_status: str = ""
+    year: int | None = None
+    province: str = ""
+    city: str = ""
+    location: str = ""
+    kbli_code: str = ""
+    image_url: str = ""
+    video_url: str = ""
+    source_url: str = ""
+    api_url: str = ""
+    investment_value_text: str = ""
+    npv_text: str = ""
+    irr_text: str = ""
+    payback_text: str = ""
+    description: str = ""
+    technical_aspect: str = ""
+    market_aspect: str = ""
+    incentives: list[ProjectSourceIncentive] = Field(default_factory=list)
+    contacts: list[ProjectSourceContact] = Field(default_factory=list)
+    gallery: list[str] = Field(default_factory=list)
+    documents: list[str] = Field(default_factory=list)
 
 
 class Infrastructure(BaseModel):
@@ -59,18 +122,28 @@ class Project(BaseModel):
     risk_level: RiskAppetite
     attractiveness_score: int = Field(ge=0, le=100)
     overview: str
+    coordinates: tuple[float, float] | None = None
     financials: Financials
     region: Region
     infrastructure: Infrastructure
     ecosystem: Ecosystem
     regulatory: RegulatoryReadiness
+    source: ProjectSource | None = None
 
 
 class InvestorProfileInput(BaseModel):
+    investor_type: InvestorType = "strategic_corporate"
+    origin_country: str = "Singapore"
     sector: str
     investment_size_usd: float
     risk_appetite: RiskAppetite
+    entry_mode: EntryMode = "joint_venture"
+    timeline: InvestmentTimeline = "6_12_months"
+    target_irr_pct: float = Field(default=15, ge=0)
+    investment_horizon_years: int = Field(default=7, ge=1, le=30)
+    minimum_readiness: int = Field(default=70, ge=0, le=100)
     preferred_regions: list[str] = Field(default_factory=list)
+    strategic_priorities: list[StrategicPriority] = Field(default_factory=list)
 
 
 class InvestorProfile(InvestorProfileInput):
@@ -127,7 +200,7 @@ class InvestorActionCreate(BaseModel):
 
 class InvestorAction(InvestorActionCreate):
     id: UUID = Field(default_factory=uuid4)
-    status: Literal["open", "in_progress", "completed"] = "open"
+    status: Literal["open", "in_progress", "completed", "scheduled"] = "open"
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
@@ -139,4 +212,3 @@ class AuthLogin(BaseModel):
 class AuthToken(BaseModel):
     access_token: str
     token_type: str = "bearer"
-

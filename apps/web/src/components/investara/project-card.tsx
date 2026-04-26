@@ -17,7 +17,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <Badge variant="secondary" className="w-fit">
-              {project.sector}
+              {project.source?.opportunityType ?? project.sector}
             </Badge>
             <CardTitle className="max-w-[22rem] text-lg leading-tight">{project.name}</CardTitle>
           </div>
@@ -39,7 +39,8 @@ export function ProjectCard({ project }: ProjectCardProps) {
           </div>
           <div>
             <p className="font-mono text-lg text-foreground">
-              ${(project.investmentSizeUsd / 1000000).toFixed(0)}M
+              {project.source?.investmentValueText ??
+                `$${(project.investmentSizeUsd / 1000000).toFixed(0)}M`}
             </p>
             <p className="text-xs text-muted-foreground">Ticket</p>
           </div>
@@ -52,7 +53,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
             </span>
             <span className="inline-flex items-center gap-1">
               <Building2 className="h-3.5 w-3.5" />
-              {project.ecosystem.zones[0]}
+              {project.source?.projectStatus || project.ecosystem.zones[0]}
             </span>
           </div>
           <Button asChild size="sm" variant="secondary">
@@ -66,4 +67,3 @@ export function ProjectCard({ project }: ProjectCardProps) {
     </Card>
   );
 }
-

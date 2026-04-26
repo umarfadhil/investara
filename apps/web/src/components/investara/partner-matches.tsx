@@ -1,8 +1,13 @@
+"use client";
+
+import { useMemo } from "react";
 import { Handshake } from "lucide-react";
 
+import { useLanguage } from "@/components/investara/language-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocalStorageState } from "@/lib/use-local-storage-state";
 import type { Partner } from "@/types/investara";
 
 type PartnerMatchesProps = {
@@ -11,28 +16,60 @@ type PartnerMatchesProps = {
   sector?: string;
 };
 
+const requestStorageKey = "investara-introduction-requests";
+const emptyRequestedPartnerIds: string[] = [];
+
+function parseRequestedPartnerIds(value: unknown, fallback: string[]) {
+  return Array.isArray(value) ? value.filter((item) => typeof item === "string") : fallback;
+}
+
 export function PartnerMatches({ partners, regionId, sector }: PartnerMatchesProps) {
-  const visiblePartners = partners
-    .filter((partner) => !regionId || partner.regionId === regionId)
-    .filter((partner) => !sector || partner.sectors.includes(sector))
-    .sort((a, b) => b.matchScore - a.matchScore);
+  const { t } = useLanguage();
+  const [requestedPartnerIds, setRequestedPartnerIds] = useLocalStorageState<string[]>(
+    requestStorageKey,
+    emptyRequestedPartnerIds,
+    parseRequestedPartnerIds,
+  );
+  const requestedPartnerIdSet = useMemo(
+    () => new Set(requestedPartnerIds),
+    [requestedPartnerIds],
+  );
+  const visiblePartners = useMemo(
+    () =>
+      partners
+        .filter((partner) => !regionId || partner.regionId === regionId)
+        .filter((partner) => !sector || partner.sectors.includes(sector))
+        .sort((a, b) => b.matchScore - a.matchScore),
+    [partners, regionId, sector],
+  );
+
+  function requestIntroduction(partnerId: string) {
+    setRequestedPartnerIds((current) =>
+      current.includes(partnerId) ? current : [...current, partnerId],
+    );
+  }
 
   return (
     <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Handshake className="h-4 w-4 text-primary" />
-          Local partner matches
+          {t("partner.title")}
         </CardTitle>
       </CardHeader>
       <CardContent className="grid gap-3">
+        {visiblePartners.length === 0 ? (
+          <div className="rounded-md border border-dashed border-border/70 bg-secondary/30 p-4 text-sm text-muted-foreground">
+            {t("partner.empty")}
+          </div>
+        ) : null}
         {visiblePartners.map((partner) => (
           <div key={partner.id} className="rounded-md border border-border/70 bg-secondary/30 p-4">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h3 className="text-sm font-medium">{partner.name}</h3>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {partner.capabilities.join(" · ")}
+                  {partner.capabilities.join(" / ")}
                 </p>
               </div>
               <Badge>{partner.matchScore}/100</Badge>
@@ -45,8 +82,15 @@ export function PartnerMatches({ partners, regionId, sector }: PartnerMatchesPro
                   </Badge>
                 ))}
               </div>
-              <Button size="sm" variant="secondary">
-                Request Introduction
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={requestedPartnerIdSet.has(partner.id)}
+                onClick={() => requestIntroduction(partner.id)}
+              >
+                {requestedPartnerIdSet.has(partner.id)
+                  ? t("partner.requested")
+                  : t("partner.request")}
               </Button>
             </div>
           </div>
@@ -55,4 +99,3 @@ export function PartnerMatches({ partners, regionId, sector }: PartnerMatchesPro
     </Card>
   );
 }
-

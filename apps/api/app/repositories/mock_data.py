@@ -1,125 +1,155 @@
+import json
+from pathlib import Path
+from typing import Any
+
 from app.schemas.domain import (
     Ecosystem,
     Financials,
     Infrastructure,
     Partner,
     Project,
+    ProjectSource,
+    ProjectSourceContact,
+    ProjectSourceIncentive,
     Region,
     RegulatoryReadiness,
 )
 
-REGIONS: list[Region] = [
-    Region(
-        id="central-java",
-        name="Central Java",
-        country="Indonesia",
-        population=37180000,
-        workforce=19900000,
-        median_age=31.7,
-        gdp_usd_billion=108.4,
-        growth_rate=5.1,
-        minimum_wage_usd=145,
-        sectors=["Manufacturing", "Textiles", "Food Processing", "Renewable Energy"],
-    ),
-    Region(
-        id="east-kalimantan",
-        name="East Kalimantan",
-        country="Indonesia",
-        population=4050000,
-        workforce=2130000,
-        median_age=29.8,
-        gdp_usd_billion=54.2,
-        growth_rate=6.3,
-        minimum_wage_usd=220,
-        sectors=["Energy", "Mining Services", "Logistics", "Construction"],
-    ),
-]
+JsonObject = dict[str, Any]
 
-PROJECTS: list[Project] = [
-    Project(
-        id="pir-solar-central-java",
-        name="Central Java Solar Components Park",
-        sector="Renewable Energy",
-        region_id="central-java",
-        investment_size_usd=85000000,
-        readiness_level=82,
-        risk_level="medium",
-        attractiveness_score=88,
-        overview=(
-            "Integrated solar panel component manufacturing park near Semarang "
-            "industrial corridors."
+_SNAPSHOT_PATH = Path(__file__).with_name("bkpm_opportunities.generated.json")
+
+
+def _load_snapshot() -> JsonObject:
+    with _SNAPSHOT_PATH.open(encoding="utf-8") as file:
+        return json.load(file)
+
+
+def _region_from_json(row: JsonObject) -> Region:
+    return Region(
+        id=str(row["id"]),
+        name=str(row["name"]),
+        country="Indonesia",
+        population=int(row["population"]),
+        workforce=int(row["workforce"]),
+        median_age=float(row["medianAge"]),
+        gdp_usd_billion=float(row["gdpUsdBillion"]),
+        growth_rate=float(row["growthRate"]),
+        minimum_wage_usd=float(row["minimumWageUsd"]),
+        sectors=list(row["sectors"]),
+    )
+
+
+def _source_from_json(row: JsonObject | None) -> ProjectSource | None:
+    if not row:
+        return None
+
+    return ProjectSource(
+        provider=str(row["provider"]),
+        source_id=str(row["sourceId"]),
+        opportunity_type=str(row["opportunityType"]),
+        project_status=str(row.get("projectStatus") or ""),
+        year=row.get("year"),
+        province=str(row.get("province") or ""),
+        city=str(row.get("city") or ""),
+        location=str(row.get("location") or ""),
+        kbli_code=str(row.get("kbliCode") or ""),
+        image_url=str(row.get("imageUrl") or ""),
+        video_url=str(row.get("videoUrl") or ""),
+        source_url=str(row.get("sourceUrl") or ""),
+        api_url=str(row.get("apiUrl") or ""),
+        investment_value_text=str(row.get("investmentValueText") or ""),
+        npv_text=str(row.get("npvText") or ""),
+        irr_text=str(row.get("irrText") or ""),
+        payback_text=str(row.get("paybackText") or ""),
+        description=str(row.get("description") or ""),
+        technical_aspect=str(row.get("technicalAspect") or ""),
+        market_aspect=str(row.get("marketAspect") or ""),
+        incentives=[
+            ProjectSourceIncentive(
+                name=str(item.get("name") or ""),
+                description=str(item.get("description") or ""),
+            )
+            for item in row.get("incentives", [])
+        ],
+        contacts=[
+            ProjectSourceContact(
+                name=str(item.get("name") or ""),
+                address=str(item.get("address") or ""),
+                phone=str(item.get("phone") or ""),
+                email=str(item.get("email") or ""),
+                website=str(item.get("website") or ""),
+            )
+            for item in row.get("contacts", [])
+        ],
+        gallery=list(row.get("gallery", [])),
+        documents=list(row.get("documents", [])),
+    )
+
+
+def _project_from_json(row: JsonObject) -> Project:
+    financials = row["financials"]
+    infrastructure = row["infrastructure"]
+    ecosystem = row["ecosystem"]
+    regulatory = row["regulatory"]
+
+    return Project(
+        id=str(row["id"]),
+        name=str(row["name"]),
+        sector=str(row["sector"]),
+        region_id=str(row["regionId"]),
+        investment_size_usd=float(row["investmentSizeUsd"]),
+        readiness_level=int(row["readinessLevel"]),
+        risk_level=row["riskLevel"],
+        attractiveness_score=int(row["attractivenessScore"]),
+        overview=str(row["overview"]),
+        coordinates=tuple(row["coordinates"]) if row.get("coordinates") else None,
+        financials=Financials(
+            irr=float(financials["irr"]),
+            npv_usd=float(financials["npvUsd"]),
+            payback_years=float(financials["paybackYears"]),
         ),
-        financials=Financials(irr=16.8, npv_usd=22400000, payback_years=6.2),
-        region=REGIONS[0],
+        region=_region_from_json(row["region"]),
         infrastructure=Infrastructure(
-            ports_distance_km=24,
-            airport_distance_km=18,
-            road_score=87,
-            electricity_score=82,
-            internet_score=78,
+            ports_distance_km=float(infrastructure["portsDistanceKm"]),
+            airport_distance_km=float(infrastructure["airportDistanceKm"]),
+            road_score=int(infrastructure["roadScore"]),
+            electricity_score=int(infrastructure["electricityScore"]),
+            internet_score=int(infrastructure["internetScore"]),
         ),
         ecosystem=Ecosystem(
-            industries=["Electronics", "Glass", "Metal fabrication", "Industrial logistics"],
-            zones=["Kendal Industrial Park", "Semarang Industrial Estate"],
-            companies=["Polytron", "Djarum Group", "Kendal Eco City tenants"],
+            industries=list(ecosystem["industries"]),
+            zones=list(ecosystem["zones"]),
+            companies=list(ecosystem["companies"]),
         ),
         regulatory=RegulatoryReadiness(
-            permits=["Location permit", "Industrial estate approval", "Environmental baseline"],
-            incentives=["Tax allowance eligibility", "Import duty facility"],
-            complexity_level="medium",
-            government_support="Provincial one-stop investment desk assigned.",
+            permits=list(regulatory["permits"]),
+            incentives=list(regulatory["incentives"]),
+            complexity_level=regulatory["complexityLevel"],
+            government_support=str(regulatory["governmentSupport"]),
         ),
-    ),
-    Project(
-        id="pir-logistics-east-kalimantan",
-        name="IKN Regional Cold Chain Hub",
-        sector="Logistics",
-        region_id="east-kalimantan",
-        investment_size_usd=52000000,
-        readiness_level=74,
-        risk_level="medium",
-        attractiveness_score=81,
-        overview=(
-            "Temperature-controlled logistics hub serving the new capital region "
-            "and eastern Indonesia."
-        ),
-        financials=Financials(irr=14.2, npv_usd=13700000, payback_years=7.1),
-        region=REGIONS[1],
-        infrastructure=Infrastructure(
-            ports_distance_km=32,
-            airport_distance_km=41,
-            road_score=72,
-            electricity_score=76,
-            internet_score=70,
-        ),
-        ecosystem=Ecosystem(
-            industries=["Food distribution", "Construction supply", "Port logistics"],
-            zones=["Kariangau Industrial Estate", "Balikpapan logistics corridor"],
-            companies=["Pelindo", "Pertamina logistics network", "Regional food distributors"],
-        ),
-        regulatory=RegulatoryReadiness(
-            permits=["Warehouse permit", "Cold storage certification"],
-            incentives=["Strategic region facilitation", "Customs zone discussion"],
-            complexity_level="medium",
-            government_support="Regional investment office and IKN-linked facilitation available.",
-        ),
-    ),
-]
+        source=_source_from_json(row.get("source")),
+    )
+
+
+_SNAPSHOT = _load_snapshot()
+PROJECTS: list[Project] = [_project_from_json(project) for project in _SNAPSHOT["projects"]]
+REGIONS: list[Region] = list({project.region.id: project.region for project in PROJECTS}.values())
 
 PARTNERS: list[Partner] = [
     Partner(
         id="partner-kendal-advisory",
         name="Kendal Industrial Advisory",
-        region_id="central-java",
-        sectors=["Renewable Energy", "Manufacturing"],
+        region_id="jawa-tengah",
+        sectors=["Renewable Energy", "Manufacturing", "Industrial Estate & Real Estate"],
         capabilities=["Site acquisition", "Permitting", "Industrial estate coordination"],
         match_score=91,
     ),
     Partner(
         id="partner-balikpapan-logistics",
         name="Balikpapan Logistics Consortium",
-        region_id="east-kalimantan",
-        sectors=["Logistics", "Food Processing"],
+        region_id="kalimantan-timur",
+        sectors=["Transport & Logistics", "Infrastructure", "Fisheries"],
         capabilities=["Cold chain operations", "Port coordination", "Fleet partnerships"],
         match_score=87,
     ),

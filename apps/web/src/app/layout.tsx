@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
+import { LanguageProvider } from "@/components/investara/language-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -20,6 +22,17 @@ export const metadata: Metadata = {
     "Multilingual investment intelligence for Indonesian regional opportunities.",
 };
 
+const themeScript = `
+  (function () {
+    try {
+      var theme = window.localStorage.getItem("investara-theme") || "dark";
+      document.documentElement.classList.toggle("dark", theme === "dark");
+    } catch (error) {
+      document.documentElement.classList.add("dark");
+    }
+  })();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -29,9 +42,17 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} dark h-full`}
+      suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col antialiased">
-        <TooltipProvider>{children}</TooltipProvider>
+        <Script
+          id="investara-theme"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{ __html: themeScript }}
+        />
+        <TooltipProvider>
+          <LanguageProvider>{children}</LanguageProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

@@ -10,6 +10,7 @@
     "web:dev": "npm --workspace apps/web run dev",
     "web:build": "npm --workspace apps/web run build",
     "web:lint": "npm --workspace apps/web run lint",
+    "data:sync:bkpm": "node scripts/sync-bkpm-opportunities.mjs",
     "api:dev": "cd apps/api && .\\.venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8000",
     "api:test": "cd apps/api && .\\.venv\\Scripts\\python.exe -m pytest",
     "api:lint": "cd apps/api && .\\.venv\\Scripts\\python.exe -m ruff check app tests",

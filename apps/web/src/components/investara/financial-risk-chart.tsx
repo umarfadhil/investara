@@ -81,7 +81,7 @@ export function FinancialRiskChart({ irr, readiness }: FinancialRiskChartProps) 
       <div className="h-[260px] rounded-lg border border-border/70 bg-secondary/20 p-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-sm font-medium">Risk breakdown</h3>
-          <span className="font-mono text-xs text-muted-foreground">0 low · 100 high</span>
+          <span className="font-mono text-xs text-muted-foreground">0 low / 100 high</span>
         </div>
         <ResponsiveContainer width="100%" height="86%">
           <BarChart data={risks} layout="vertical">
@@ -103,4 +103,3 @@ export function FinancialRiskChart({ irr, readiness }: FinancialRiskChartProps) 
     </div>
   );
 }
-

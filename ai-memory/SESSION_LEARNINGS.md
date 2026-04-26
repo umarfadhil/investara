@@ -5,7 +5,7 @@
 - Mock data comes first, but route and schema names are production-shaped.
 - Leaflet is the initial map implementation for MVP speed and easier local development.
 - AI features will be routed through FastAPI so API keys never reach the browser.
-- The first screen is an investor decision workspace, not a marketing landing page.
+- The first screen is now an investor discovery landing page that hooks investors into Indonesia's opportunity landscape before routing them through the decision workflow.
 - Next.js uses shadcn/ui with dark-mode dashboard defaults and a pinned Turbopack root.
 - FastAPI exposes typed MVP endpoints under `/api/v1` with mock project, partner, action, recommendation, translation, and decision-brief services.
 - Next local dev uses `next dev --webpack` because Turbopack dev spawned excessive PostCSS worker processes in this workspace. Production build remains verified.
@@ -32,6 +32,7 @@
 - Apply `infra/supabase/001_init.sql` to the hosted Supabase project before running the API with `DATA_BACKEND=supabase`.
 - Direct remote schema application still needs a Supabase database password or Supabase access token; project API keys only cover REST data access after tables exist.
 - Vercel CLI/CI needs a Vercel access token plus `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`; do not store token values in tracked files.
+- Landing-page claims should avoid unsupported government-backed or performance metrics unless they are in `/ai-memory`, mock data, or an explicitly approved source; use BKPM contact/action language rather than implying official backing.
 
 ## Current Session
 - Created the required `/ai-memory` folder and initial project memory files.
@@ -92,3 +93,106 @@
   - Local Windows builds passed because `@tailwindcss/oxide-win32-x64-msvc` was installed locally, but Vercel's Linux build needed `@tailwindcss/oxide-linux-x64-gnu`.
   - Root workspace installs use the root `package-lock.json`; `apps/web/package-lock.json` containing Linux optional packages is not enough for Vercel's root install.
   - Added `@tailwindcss/oxide-linux-x64-gnu@4.2.4` as a root optional dependency and made the Vercel install command explicit with `npm install --include=optional`.
+- Investor journey and display-mode improvement:
+  - Rebuilt `/` as a discovery landing page with Indonesia visual imagery, country opportunity hooks, seven journey steps, opportunity preview, investor value, and Indonesia impact sections.
+  - Added persisted light/dark display mode through `ThemeToggle`, available in the landing header and each workflow route header.
+  - Updated route back links from "workspace" to "discovery" to match the new journey language.
+  - Kept unsupported "government-backed" positioning out of the UI; the flow references BKPM contact/action handling already present in the project scope.
+  - Fixed partner capability separators to avoid the prior visible encoding artifact.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - Playwright browser check passed on desktop and mobile for `/`, including dark/light toggle behavior, no console errors, no Next overlay, loaded hero background, and no horizontal overflow.
+    - Playwright browser check passed for `/profile`, `/map`, `/dashboard`, and `/projects/pir-solar-central-java` with no overlay and no horizontal overflow.
+- User journey functionality pass:
+  - Added app-level persisted language state through `LanguageProvider`; the language switcher now changes key journey copy and updates `document.documentElement.lang`.
+  - Expanded `src/lib/i18n.ts` with English, Chinese, Japanese, and Korean UI strings for primary journey surfaces.
+  - Added hydration-safe `useLocalStorageState` for MVP client persistence without React hydration errors.
+  - Profile workflow now supports preferred-region toggles, local profile persistence, and live recommendation updates from the saved profile shape.
+  - Partner introduction buttons now transition to a requested state and persist locally.
+  - Action dashboard progress now persists locally and advances scheduled diligence actions through in-progress to completed.
+  - Investment map now handles empty filter results with a reset action and includes project brief links from the side list and popups.
+  - Backend and SQL action contracts now include `diligence` action type and `scheduled` status; added a schema regression test for that contract.
+  - Fixed hydration mismatch from locale-sensitive number formatting and replaced the inline theme script with `next/script`.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - `npm run api:lint` passed.
+    - `npm run api:test` passed with 2 tests; Pydantic still emits the existing `datetime.utcnow()` deprecation warning.
+    - Playwright browser pass covered `/`, `/profile`, `/map`, `/dashboard`, and `/projects/pir-solar-central-java` with no overlay and no console errors.
+  - Playwright verified language switching to Chinese, profile region persistence after reload, partner request state, action status update, map empty-state reset, and map brief links.
+- Discover & Entry and enriched profile pass:
+  - Added a functional Discover & Entry panel on `/` that captures investor type, origin market, sector, entry mode, ticket size, risk appetite, readiness floor, target IRR, preferred regions, and strategic priorities.
+  - The landing entry panel writes to the shared `investara-profile` localStorage shape and routes to `/profile`, so the profile page immediately reflects the entry choices.
+  - Expanded the frontend `InvestorProfile` type, default mock profile, local profile parser, profile form, profile summary, and recommendation reasons.
+  - Recommendation scoring now includes sector alignment, ticket-size fit, risk match, readiness threshold fit, target IRR fit, strategic priorities, preferred region bonus, and preferred entry-mode bonus.
+  - Expanded the FastAPI `InvestorProfileInput` contract and both PostgreSQL/Supabase SQL schemas with the same profile variables for future API-backed persistence.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - `npm run api:lint` passed.
+    - `npm run api:test` passed with 2 tests; Pydantic still emits the existing `datetime.utcnow()` deprecation warning.
+    - `python -m compileall app tests` passed in `apps/api`.
+    - Playwright browser verification passed for `/` to `/profile` entry handoff, persisted profile reload, desktop/mobile no-overflow checks, no framework overlay, and no console errors.
+- Landing page signal image pass:
+  - Added Wikimedia Commons imagery to the Demographic Dividend and Natural Resources cards on `/`, using the landing page's existing discovery signal image field and renderer.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - Playwright browser verification passed for `/`, confirming both cards render image blocks with no console errors, no Next overlay, and no horizontal overflow.
+- BKPM PIR opportunity enrichment pass:
+  - Added `scripts/sync-bkpm-opportunities.mjs` and root `npm run data:sync:bkpm`.
+  - Synced public BKPM PIR opportunity rows from `https://regionalinvestment.bkpm.go.id/be/peluang/peluang_investasi_wilayah`.
+  - Generated 183 normalized opportunities: 83 PPI, 11 IPRO, and 89 PID.
+  - Generated frontend and API snapshot files:
+    - `apps/web/src/data/bkpm-opportunities.generated.json`
+    - `apps/api/app/repositories/bkpm_opportunities.generated.json`
+  - Rewired frontend `mock-projects.ts` and FastAPI mock repository to use the generated BKPM snapshot.
+  - Added optional project coordinates and BKPM PIR source metadata to the frontend and backend project schemas.
+  - Expanded investor sector options and recommendation heuristics so BKPM sectors, project statuses, source metadata, contacts, and project scale influence ranking.
+  - Updated map markers to use project-level coordinates when present and project detail pages to expose BKPM source/status/location without implying exact infrastructure distances.
+  - Verification completed:
+    - `npm run data:sync:bkpm` synced 183 opportunities.
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - `npm run api:lint` passed.
+    - `npm run api:test` passed with 2 tests; Pydantic still emits the existing `datetime.utcnow()` deprecation warning.
+    - `python -m compileall app` passed in `apps/api`.
+    - `python -m compileall app tests` hit a Windows permission error writing one test `__pycache__` file, while pytest passed.
+    - Playwright smoke check passed for `/`, `/profile`, `/map`, and a generated BKPM project detail route with content rendered and no Next.js error overlay.
+- Preferred region simplification pass:
+  - Replaced province-level preferred-region toggles on the landing entry panel and profile form with six broad choices: Sumatera, Java, Kalimantan, Sulawesi, Bali & Nusa Tenggara, and Maluku & Papua.
+  - Added shared frontend region-group helpers that normalize legacy province slugs into broad region groups for persisted browser profiles.
+  - Updated frontend and FastAPI recommendation scoring so broad preferred regions still match province-level BKPM opportunities.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - `npm run api:lint` passed.
+    - `npm run api:test` passed with 2 tests; Pydantic still emits the existing `datetime.utcnow()` deprecation warning.
+    - Playwright smoke check passed for `/` and `/profile`, including legacy province preference normalization, landing-to-profile handoff, and desktop/mobile no-overflow checks.
+- Map page presentation pass:
+  - Reworked `/map` so the filter and opportunity rail has a fixed-height, internal scroll area instead of allowing the full BKPM opportunity list to stretch the page.
+  - Added a visible/total opportunity count, alphabetized filter choices, and compact ranked opportunity cards sorted by attractiveness score, readiness, and name.
+  - Kept Leaflet marker rendering tied to the same filtered projects and preserved project-coordinate fallback behavior.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - Playwright browser check passed for `/map` at 1440x900 and 390x844 with no console errors, no Next overlay, desktop page height bounded to the viewport, and the opportunity rail scrolling internally.
+- Investment decision brief enrichment pass:
+  - Added `src/lib/decision-brief.ts` to generate source-aware project brief content from BKPM PIR financial fields, regional metadata, source descriptions, market/technical aspects, incentives, contacts, and detected BPS/sector-source references.
+  - Reworked `/projects/[id]` Investment Decision Brief to include why invest, why not, ideal investor, next action, evidence bullets, source chips, and per-factor diligence focus across financial risk, regional intelligence, infrastructure, ecosystem, regulatory readiness, and final recommendation.
+  - Added first-pass BPS/BKPM source signaling to project pages before the later Investara-provided BPS reference panel replaced external BPS cross-check prompts.
+  - Updated `DecisionSection` so decision factors can render evidence, diligence focus, and source signals while keeping metric labels constrained for mobile.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - Playwright browser check passed for two project detail pages at 1440x900 and 390x844 with no console errors, no Next overlay, no horizontal overflow, and visible BPS/BKPM/diligence signals.
+- BPS reference completion pass:
+  - Removed the external BPS reference button from `/projects/[id]` and replaced the old missing-check language with Investara-provided BPS/regional reference wording.
+  - Added `src/lib/bps-reference.ts` to summarize normalized population, workforce, GRDP proxy, monthly wage, regional sectors, snapshot date, and direct PIR BPS excerpts where present.
+  - Added an "Investara BPS Reference" panel to project detail pages so first-pass regional statistics review stays inside Investara for both projects with and without direct PIR BPS citations.
+  - Updated decision-brief source chips, regional factor copy, final recommendation copy, and source note to reference the Investara BPS/regional layer instead of asking investors to cross-check elsewhere.
+  - Verification completed:
+    - `npm run web:lint` passed.
+    - `npm run web:build` passed.
+    - Playwright browser check passed for one no-direct-BPS project and one direct-BPS-citation project at 1440x900 and 390x844, with no console errors, no Next overlay, no horizontal overflow, visible BPS reference panels, and no old cross-check wording.

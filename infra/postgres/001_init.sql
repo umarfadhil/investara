@@ -56,10 +56,38 @@ CREATE TABLE IF NOT EXISTS project_regulatory_readiness (
 
 CREATE TABLE IF NOT EXISTS investor_profiles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  investor_type TEXT NOT NULL DEFAULT 'strategic_corporate' CHECK (
+    investor_type IN (
+      'strategic_corporate',
+      'private_equity',
+      'family_office',
+      'development_finance',
+      'government_agency'
+    )
+  ),
+  origin_country TEXT NOT NULL DEFAULT 'Singapore',
   sector TEXT NOT NULL,
   investment_size_usd NUMERIC(16, 2) NOT NULL,
   risk_appetite TEXT NOT NULL CHECK (risk_appetite IN ('low', 'medium', 'high')),
+  entry_mode TEXT NOT NULL DEFAULT 'joint_venture' CHECK (
+    entry_mode IN (
+      'joint_venture',
+      'minority_stake',
+      'greenfield',
+      'project_finance',
+      'acquisition'
+    )
+  ),
+  timeline TEXT NOT NULL DEFAULT '6_12_months' CHECK (
+    timeline IN ('0_6_months', '6_12_months', '12_24_months')
+  ),
+  target_irr_pct NUMERIC(5, 2) NOT NULL DEFAULT 15,
+  investment_horizon_years INTEGER NOT NULL DEFAULT 7 CHECK (
+    investment_horizon_years BETWEEN 1 AND 30
+  ),
+  minimum_readiness INTEGER NOT NULL DEFAULT 70 CHECK (minimum_readiness BETWEEN 0 AND 100),
   preferred_regions TEXT[] NOT NULL DEFAULT '{}',
+  strategic_priorities TEXT[] NOT NULL DEFAULT '{}',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -75,14 +103,23 @@ CREATE TABLE IF NOT EXISTS partners (
 CREATE TABLE IF NOT EXISTS investor_actions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   project_id TEXT NOT NULL REFERENCES projects(id),
-  action_type TEXT NOT NULL CHECK (action_type IN ('shortlist', 'request_intro', 'contact_bkpm')),
-  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'completed')),
+  action_type TEXT NOT NULL CHECK (action_type IN ('shortlist', 'request_intro', 'contact_bkpm', 'diligence')),
+  status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'completed', 'scheduled')),
   notes TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 ALTER TABLE investor_profiles ALTER COLUMN id SET DEFAULT gen_random_uuid();
 ALTER TABLE investor_actions ALTER COLUMN id SET DEFAULT gen_random_uuid();
+ALTER TABLE investor_profiles
+  ADD COLUMN IF NOT EXISTS investor_type TEXT NOT NULL DEFAULT 'strategic_corporate',
+  ADD COLUMN IF NOT EXISTS origin_country TEXT NOT NULL DEFAULT 'Singapore',
+  ADD COLUMN IF NOT EXISTS entry_mode TEXT NOT NULL DEFAULT 'joint_venture',
+  ADD COLUMN IF NOT EXISTS timeline TEXT NOT NULL DEFAULT '6_12_months',
+  ADD COLUMN IF NOT EXISTS target_irr_pct NUMERIC(5, 2) NOT NULL DEFAULT 15,
+  ADD COLUMN IF NOT EXISTS investment_horizon_years INTEGER NOT NULL DEFAULT 7,
+  ADD COLUMN IF NOT EXISTS minimum_readiness INTEGER NOT NULL DEFAULT 70,
+  ADD COLUMN IF NOT EXISTS strategic_priorities TEXT[] NOT NULL DEFAULT '{}';
 
 CREATE INDEX IF NOT EXISTS idx_projects_sector ON projects(sector);
 CREATE INDEX IF NOT EXISTS idx_projects_region_id ON projects(region_id);
